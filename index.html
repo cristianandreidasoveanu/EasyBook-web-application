@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <title>EasyBook - Rezervari Litoral Romanesc</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <link href="css/styles.css" rel="stylesheet" />
+        <style>
+            .view-section { display: none; }
+            .view-section.active { display: block; }
+            .badge-sale { top: 0.5rem; right: 0.5rem; z-index: 10; }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand fw-bold text-primary" href="javascript:void(0);" onclick="app.switchView('home')"><i class="bi-tsunami me-2"></i>EasyBook</a>
+        <span id="user-role-badge" class="badge bg-secondary me-3">Vizitator</span>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <li class="nav-item"><a class="nav-link" href="javascript:void(0);" onclick="app.switchView('home')">Home</a></li>
+                <li class="nav-item role-dependent tourist-role owner-role admin-role" style="display:none;"><a class="nav-link" href="javascript:void(0);" onclick="app.switchView('dashboard')">Panou Control</a></li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <div id="auth-buttons">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="app.switchView('login')">Autentificare</button>
+                    <button class="btn btn-sm btn-primary" onclick="app.switchView('register')">Creare Cont</button>
+                </div>
+                <div id="user-profile" style="display: none;" class="dropdown">
+                    <button class="btn btn-outline-dark dropdown-toggle btn-sm" type="button" id="profileDropdown" data-bs-toggle="dropdown">
+                        <i class="bi-person-circle me-1"></i> <span id="logged-in-username">User</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="app.logout()">Deconectare</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+        <div class="container mt-3" id="alert-container"></div>
+
+        <div id="view-home" class="view-section active">
+            <header class="bg-dark py-5 text-center text-white mb-4">
+                <div class="container px-4 px-lg-5 my-3">
+                    <h1 class="display-4 fw-bolder">Litoral EasyBook</h1>
+                    <p class="lead fw-normal text-white-50 mb-0">Planifica-ti vacanta perfecta pe litoralul romanesc</p>
+                </div>
+            </header>
+
+            <div class="container px-4 px-lg-5">
+                <div class="card shadow-sm p-4 mb-4 bg-light">
+                    <form id="search-form" onsubmit="app.handleSearch(event)">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Statiune</label>
+                                <select class="form-select" id="search-resort" required>
+                                    <option value="">Alege statiunea...</option>
+                                    <option value="Mamaia">Mamaia</option>
+                                    <option value="Eforie Nord">Eforie Nord</option>
+                                    <option value="Costinesti">Costinesti</option>
+                                    <option value="Vama Veche">Vama Veche</option>
+                                    <option value="Neptun">Neptun</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Check-In</label>
+                                <input type="date" class="form-control" id="search-checkin" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Check-Out</label>
+                                <input type="date" class="form-control" id="search-checkout" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Persoane</label>
+                                <input type="number" class="form-control" id="search-guests" min="1" value="2" required>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100"><i class="bi-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-3 mb-4">
+                        <div class="card shadow-sm p-3">
+                            <h5 class="fw-bold mb-3"><i class="bi-funnel me-2"></i>Filtreaza</h5>
+                            <hr class="mt-0">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Pret maxim / noapte ($)</label>
+                                <input type="range" class="form-range" id="filter-price" min="10" max="300" value="300" oninput="app.handleFilters()">
+                                <div class="d-flex justify-content-between small text-muted">
+                                    <span>$10</span>
+                                    <span id="filter-price-val" class="fw-bold text-dark">$300</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Facilitati</label>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-facility" type="checkbox" value="Wi-Fi" id="fac-wifi" onchange="app.handleFilters()">
+                                    <label class="form-check-label small" for="fac-wifi">Wi-Fi gratuit</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-facility" type="checkbox" value="Parcare" id="fac-park" onchange="app.handleFilters()">
+                                    <label class="form-check-label small" for="fac-park">Parcare inclusa</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-facility" type="checkbox" value="Piscina" id="fac-pool" onchange="app.handleFilters()">
+                                    <label class="form-check-label small" for="fac-pool">Piscina</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-facility" type="checkbox" value="Aer Conditionat" id="fac-ac" onchange="app.handleFilters()">
+                                    <label class="form-check-label small" for="fac-ac">Aer Conditionat</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="row id-results-container" id="properties-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-details" class="view-section container px-4 px-lg-5 my-5">
+            <button class="btn btn-sm btn-outline-secondary mb-4" onclick="app.switchView('home')"><i class="bi-arrow-left me-1"></i> Inapoi la rezultate</button>
+            <div id="property-details-content"></div>
+        </div>
+
+        <div id="view-login" class="view-section container my-5">
+            <div class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="card shadow p-4">
+                        <h3 class="fw-bold text-center mb-4">Autentificare</h3>
+                        <form onsubmit="app.handleLogin(event)">
+                            <div class="mb-3">
+                                <label class="form-label">Adresa Email</label>
+                                <input type="email" class="form-control" id="login-email" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Parola</label>
+                                <input type="password" class="form-control" id="login-password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Intra in cont</button>
+                        </form>
+                        <p class="text-center small text-muted mt-3 mb-0">
+                            Nu ai cont? <a href="javascript:void(0);" onclick="event.preventDefault(); app.switchView('register')">Inregistreaza-te</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-register" class="view-section container my-5">
+            <div class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="card shadow p-4">
+                        <h3 class="fw-bold text-center mb-4">Inregistrare cont</h3>
+                        <form onsubmit="app.handleRegister(event)">
+                            <div class="mb-3">
+                                <label class="form-label">Nume Complet / Utilizator</label>
+                                <input type="text" class="form-control" id="reg-username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Adresa Email</label>
+                                <input type="email" class="form-control" id="reg-email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Parola</label>
+                                <input type="password" class="form-control" id="reg-password" placeholder="Minim 6 caractere" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tip Cont / Rol</label>
+                                <select class="form-select" id="reg-role" onchange="app.toggleAdminKeyField()" required>
+                                    <option value="Turist">Turist (Vreau sa rezerv)</option>
+                                    <option value="Proprietar">Proprietar / Gazda (Am cazari de oferit)</option>
+                                    <option value="Administrator">Administrator (Gestionare platforma)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4" id="admin-confirm-container" style="display: none;">
+                                <label class="form-label text-danger fw-bold">Link / Cod Confirmare Administrator</label>
+                                <input type="text" class="form-control border-danger" id="reg-admin-key" placeholder="Introduceti token-ul sau link-ul de confirmare">
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">Creeaza cont</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-dashboard" class="view-section container my-5">
+            <h2 class="fw-bold mb-4">Panou de Control - <span id="dashboard-role-title">Rol</span></h2>
+            
+            <div id="subview-tourist" class="dashboard-subview" style="display:none;">
+                <ul class="nav nav-pills mb-4" id="touristTabs">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-my-bookings">Rezervarile Mele</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-favorites">Favorite</button></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="tab-my-bookings">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Proprietate</th>
+                                        <th>Perioada</th>
+                                        <th>Persoane</th>
+                                        <th>Pret Total</th>
+                                        <th>Status</th>
+                                        <th>Actiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tourist-bookings-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tab-favorites">
+                        <div class="row" id="tourist-favorites-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="subview-owner" class="dashboard-subview" style="display:none;">
+                <ul class="nav nav-pills mb-4" id="ownerTabs">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-manage-properties">Proprietatile Mele</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-received-bookings">Rezervari Primite</button></li>
+                    <li class="nav-item"><button class="nav-link bg-success text-white ms-2" data-bs-toggle="pill" data-bs-target="#tab-add-property"><i class="bi-plus-circle me-1"></i> Adauga Proprietate</button></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="tab-manage-properties">
+                        <div class="row" id="owner-properties-grid"></div>
+                    </div>
+                    <div class="tab-pane fade" id="tab-received-bookings">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Proprietate</th>
+                                        <th>Client</th>
+                                        <th>Perioada</th>
+                                        <th>Persoane</th>
+                                        <th>Status</th>
+                                        <th>Actiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="owner-received-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tab-add-property">
+                        <div class="card p-4 shadow-sm max-width-700">
+                            <h4 class="fw-bold mb-3">Publica o noua oferta</h4>
+                            <form onsubmit="app.handleAddProperty(event)">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nume Proprietate</label>
+                                        <input type="text" class="form-control" id="prop-title" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Statiune</label>
+                                        <select class="form-select" id="prop-resort" required>
+                                            <option value="Mamaia">Mamaia</option>
+                                            <option value="Eforie Nord">Eforie Nord</option>
+                                            <option value="Costinesti">Costinesti</option>
+                                            <option value="Vama Veche">Vama Veche</option>
+                                            <option value="Neptun">Neptun</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Pret / Noapte ($)</label>
+                                        <input type="number" class="form-control" id="prop-price" min="1" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Capacitate max. (persoane)</label>
+                                        <input type="number" class="form-control" id="prop-capacity" min="1" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Imagine (URL link)</label>
+                                        <input type="url" class="form-control" id="prop-image" placeholder="https://..." required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Descriere unitate</label>
+                                        <textarea class="form-control" id="prop-description" rows="3" required></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label d-block fw-bold">Facilitati disponibile</label>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input add-prop-fac" type="checkbox" value="Wi-Fi" id="afac-wifi">
+                                            <label class="form-check-label" for="afac-wifi">Wi-Fi</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input add-prop-fac" type="checkbox" value="Parcare" id="afac-park">
+                                            <label class="form-check-label" for="afac-park">Parcare</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input add-prop-fac" type="checkbox" value="Piscina" id="afac-pool">
+                                            <label class="form-check-label" for="afac-pool">Piscina</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input add-prop-fac" type="checkbox" value="Aer Conditionat" id="afac-ac">
+                                            <label class="form-check-label" for="afac-ac">Aer Conditionat</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-4">
+                                        <button type="submit" class="btn btn-primary">Trimite spre validare admin</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="subview-admin" class="dashboard-subview" style="display:none;">
+                <ul class="nav nav-pills mb-4" id="adminTabs">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-admin-props">Validare Anunturi</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-admin-users">Gestionare Utilizatori</button></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="tab-admin-props">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Proprietate</th>
+                                        <th>Locatie</th>
+                                        <th>Proprietar</th>
+                                        <th>Pret / Noapte</th>
+                                        <th>Status actual</th>
+                                        <th>Actiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-properties-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tab-admin-users">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Nume</th>
+                                        <th>Email</th>
+                                        <th>Rol</th>
+                                        <th>Actiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="py-5 bg-dark mt-auto">
+            <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Litoral EasyBook 2026</p></div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
